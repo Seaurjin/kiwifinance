@@ -18,6 +18,8 @@ AI 原生的个人财务数据层。
 
 | 文档 | 内容 |
 |---|---|
+| **[`docs/PRD.md`](docs/PRD.md)** | **产品需求文档 —— 需求的唯一真源。**编号化的功能/非功能需求、验收标准、发布计划、待决策项 |
+| [`docs/00-project-prompt.md`](docs/00-project-prompt.md) | 可直接粘贴给任何 AI 的项目上下文 prompt（自包含） |
 | [`docs/01-market-research.md`](docs/01-market-research.md) | 市场与竞品调研：咔皮记账拆解、海外/中国/华人东南亚三个市场、定位支柱、风险清单 |
 | [`docs/02-product-and-dev-plan.md`](docs/02-product-and-dev-plan.md) | 功能范围、技术栈、单位经济、四阶段开发计划与决策门、定价 |
 | [`docs/03-ai-native-architecture.md`](docs/03-ai-native-architecture.md) | **技术骨架**：捕获层、多币种账本内核、指标引擎、Report Spec、Skill 化、MCP Server、成本分层 |
@@ -40,6 +42,12 @@ AI 原生的个人财务数据层。
 2. **中国大陆** — Phase 4
 3. **华人 / 跨境人群** — 首发市场内最容易口碑引爆的种子人群
 
+## 文档关系
+
+- **`PRD.md` 是需求真源** —— 要改需求，改这里，条目都有编号（如 `FR-CAP-03`、`D-1`）
+- `01`–`04` 是**依据文档**，记录调研过程与设计推导，供追溯为什么这么定
+- `00-project-prompt.md` 是**给 AI 的上下文**，产品决策变更时同步更新
+
 ## 下一步
 
-见 [`docs/02-product-and-dev-plan.md` § 10 待决策](docs/02-product-and-dev-plan.md#10-待决策)。
+定下 [`docs/PRD.md` § 14 待决策](docs/PRD.md#14-待决策) 的 8 项（D-1 至 D-8），即可进入 Phase 0。
