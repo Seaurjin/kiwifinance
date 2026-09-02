@@ -21,6 +21,7 @@ AI 原生的个人财务数据层。
 | [`docs/01-market-research.md`](docs/01-market-research.md) | 市场与竞品调研：咔皮记账拆解、海外/中国/华人东南亚三个市场、定位支柱、风险清单 |
 | [`docs/02-product-and-dev-plan.md`](docs/02-product-and-dev-plan.md) | 功能范围、技术栈、单位经济、四阶段开发计划与决策门、定价 |
 | [`docs/03-ai-native-architecture.md`](docs/03-ai-native-architecture.md) | **技术骨架**：捕获层、多币种账本内核、指标引擎、Report Spec、Skill 化、MCP Server、成本分层 |
+| [`docs/04-model-strategy.md`](docs/04-model-strategy.md) | **模型选型双轨**：海外（Gemini / OpenAI）与中国（国产已备案模型）两套组合、价格表、合规约束、ModelRouter 抽象层 |
 
 ## 架构一览
 
