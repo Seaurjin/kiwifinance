@@ -3,14 +3,19 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Kiwi Finance — AI-native personal finance data layer",
+  "description": "Kiwi Finance \u2014 AI-native personal finance data layer",
   "scripts": {
+    "dev": "pnpm --filter @kiwi/api dev",
+    "dev:web": "pnpm --filter @kiwi/web dev",
+    "dev:ios": "pnpm --filter @kiwi/mobile ios",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit && pnpm --filter @kiwi/web exec tsc --noEmit && pnpm --filter @kiwi/mobile exec tsc --noEmit",
+    "build:web": "pnpm --filter @kiwi/web build"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
+    "playwright": "^1.63.0",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"
   },

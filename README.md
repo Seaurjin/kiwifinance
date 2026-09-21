@@ -12,26 +12,32 @@ AI 原生的个人财务数据层。
 
 ## 当前状态
 
-**Phase 0 进行中。** 确定性内核已落地并全部通过测试（139 个测试，typecheck 干净）。
+**Phase 0 确定性内核 + 可运行的前后端已就位**（172 个测试，typecheck 干净）。
 
 ```bash
-pnpm install && pnpm test && pnpm typecheck
+pnpm install
+pnpm dev        # API on :8787，内存账本，已填充演示数据
+pnpm dev:web    # Web on :5173
+pnpm dev:ios    # iOS —— 需要装有 Xcode 的 Mac
 ```
 
-| Phase 0 任务 | 状态 |
+| 任务 | 状态 |
 |---|---|
 | Report Spec JSON Schema + 校验器 | ✅ `@kiwi/report-spec` |
 | 指标库 v0 + 黄金数据集 | ✅ `@kiwi/metrics`（13 个指标，逐个手算核对） |
-| 多币种数据模型定稿 | ✅ `@kiwi/core` + `@kiwi/ledger`（含 SQL DDL 与不变量校验） |
-| ModelRouter 契约 | ✅ `@kiwi/model-router`（含中国合规路由的构造期强制） |
-| Narrator 事实约束守卫 | ✅ 超出计划范围，把 FR-ANA-06 变成可执行的门 |
+| 多币种数据模型定稿 | ✅ `@kiwi/core` + `@kiwi/ledger` + `@kiwi/store` |
+| ModelRouter 契约 | ✅ `@kiwi/model-router`（中国合规路由在构造期强制） |
+| Narrator 事实约束守卫 | ✅ 把 FR-ANA-06 变成可执行的门 |
+| 后端 API | ✅ `@kiwi/api`（SQLite 持久化、报表、捕获、导出） |
+| Web 前端 | ✅ `@kiwi/web`（已运行并截图验证） |
+| iOS 前端 | ⚠️ `@kiwi/mobile` 源码完成且类型检查通过，**未实机运行**（需 Mac） |
+| 5 / 8 个标准报表 | ✅ 其余 3 个缺 v0 指标库尚无的指标，已列出缺什么 |
 | 500+ 真实收据评测集 | ⬜ 需要真实票据素材 |
-| AI 提取 Spike + 准确率验证 | ⬜ 需要 API Key |
+| AI 提取 Spike + 准确率验证 | ⬜ 需要 API Key（当前走确定性 stub 提取器） |
 | Prompt injection 对抗测试 | ⬜ 用例集可先写，跑通需要模型 |
-| 两段式提取对照实验 | ⬜ 需要模型 |
-| 核心 6 页设计稿 | ⬜ |
+| iOS 原生扩展（Share Extension / App Intents / Widget） | ⬜ 需要 Mac |
 
-代码结构与设计说明见 [`packages/README.md`](packages/README.md)。
+代码说明见 [`packages/README.md`](packages/README.md) 与 [`apps/README.md`](apps/README.md)。
 
 ## 文档
 
@@ -47,11 +53,17 @@ pnpm install && pnpm test && pnpm typecheck
 ## 架构一览
 
 ```
-捕获层 → 多币种账本内核 → 指标引擎 → AI Harness → 内置报表 / 个性化报表 / MCP Server
-                                        ↑
-              意图 → Planner(LLM) → Report Spec(JSON) → 引擎执行
-                   → 事实集 → Narrator(LLM，只能引用事实) → 渲染器(确定性)
+packages/                                    apps/
+  core          金额 · 币种 · 汇率 · 周期      api      Fastify REST
+  ledger        实体 · 不变量 · schema         web      React + Vite
+  store         SQLite 持久化                  mobile   Expo（iOS 优先）
+  metrics       指标引擎 —— 唯一产数字的地方
+  report-spec   Spec 契约 · 执行器 · 守卫
+  model-router  任务契约 · 双轨路由
+  client        API 客户端 + 展示层（两端共用）
 ```
+
+前后端都不算数：向 API 要一份**事实集**，渲染拿到的 block。每个数字自带单位、币种、口径和背后交易的 id —— 点一下就能展开。
 
 核心机制是 **text-to-spec, not text-to-answer**：模型产出查询规格，引擎产出数字。
 

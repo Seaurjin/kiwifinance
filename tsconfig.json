@@ -25,8 +25,16 @@
       "@kiwi/ledger": ["packages/ledger/src/index.ts"],
       "@kiwi/metrics": ["packages/metrics/src/index.ts"],
       "@kiwi/model-router": ["packages/model-router/src/index.ts"],
-      "@kiwi/report-spec": ["packages/report-spec/src/index.ts"]
+      "@kiwi/report-spec": ["packages/report-spec/src/index.ts"],
+      "@kiwi/store": ["packages/store/src/index.ts"],
+      "@kiwi/client": ["packages/client/src/index.ts"]
     }
   },
-  "include": ["packages/*/src/**/*.ts", "packages/*/test/**/*.ts", "vitest.config.ts"]
+  "include": [
+    "packages/*/src/**/*.ts",
+    "packages/*/test/**/*.ts",
+    "apps/api/src/**/*.ts",
+    "apps/api/test/**/*.ts",
+    "vitest.config.ts"
+  ]
 }

@@ -1,0 +1,14 @@
+{
+  "name": "@kiwi/client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "API client and presentation helpers shared by the web and iOS apps. No DOM, no React.",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {
+    "@kiwi/core": "workspace:*",
+    "@kiwi/ledger": "workspace:*",
+    "@kiwi/metrics": "workspace:*",
+    "@kiwi/report-spec": "workspace:*"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "Kiwi Finance",
+    "slug": "kiwi-finance",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "kiwi",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.kiwi.finance",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Photograph a receipt to record it.",
+        "NSPhotoLibraryUsageDescription": "Read a payment screenshot to record it.",
+        "NSMicrophoneUsageDescription": "Say what you spent instead of typing it."
+      }
+    }
+  }
+}

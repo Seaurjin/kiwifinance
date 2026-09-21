@@ -1,0 +1,14 @@
+{
+  "name": "@kiwi/store",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "SQLite persistence for the ledger, on node:sqlite — no native build step.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@kiwi/core": "workspace:*",
+    "@kiwi/ledger": "workspace:*"
+  }
+}

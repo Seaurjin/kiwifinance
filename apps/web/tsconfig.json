@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "allowImportingTsExtensions": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": ["vite/client"],
+    "baseUrl": ".",
+    "paths": {
+      "@kiwi/core": ["../../packages/core/src/index.ts"],
+      "@kiwi/ledger": ["../../packages/ledger/src/index.ts"],
+      "@kiwi/metrics": ["../../packages/metrics/src/index.ts"],
+      "@kiwi/report-spec": ["../../packages/report-spec/src/index.ts"],
+      "@kiwi/client": ["../../packages/client/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts"]
+}
