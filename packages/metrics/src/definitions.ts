@@ -1,5 +1,8 @@
 /**
- * Metric library v0 — the twelve metrics PRD Phase 0 calls for.
+ * The metric library.
+ *
+ * PRD Phase 0 asked for twelve; there are twenty, because the three standard
+ * reports that were waiting on metrics now have them.
  *
  * Each one is a pure function of its context. Adding a metric means adding a
  * tested function here, never editing a prompt.
@@ -16,6 +19,8 @@ import {
 import { baseMagnitude, idsOf, sumBaseMagnitude, sumBaseValue } from './base-value.ts';
 import { selectTransactions } from './select.ts';
 import type { Fact, MetricContext, MetricDefinition, ScalarFact, SeriesRow } from './types.ts';
+import { largeAnomalies, categoryExport, deductibleTotal, rollingAvg } from './anomaly.ts';
+import { priceIncreaseAlert, recurringDetected, subscriptionTotal } from './recurring.ts';
 
 // ---------------------------------------------------------------------------
 // Small helpers
@@ -445,4 +450,11 @@ export const METRIC_DEFINITIONS: readonly MetricDefinition[] = [
   budgetVariance,
   dailyAllowance,
   uncategorizedRatio,
+  recurringDetected,
+  subscriptionTotal,
+  priceIncreaseAlert,
+  largeAnomalies,
+  rollingAvg,
+  deductibleTotal,
+  categoryExport,
 ];

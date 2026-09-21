@@ -12,26 +12,31 @@ AI 原生的个人财务数据层。
 
 ## 当前状态
 
-**Phase 0 确定性内核 + 可运行的前后端已就位**（172 个测试，typecheck 干净）。
+**确定性内核 + 前后端 + MCP Server 已就位**（211 个测试，typecheck 干净）。
 
 ```bash
 pnpm install
 pnpm dev        # API on :8787，内存账本，已填充演示数据
 pnpm dev:web    # Web on :5173
 pnpm dev:ios    # iOS —— 需要装有 Xcode 的 Mac
+pnpm dev:mcp    # MCP Server on :8788/mcp
 ```
 
 | 任务 | 状态 |
 |---|---|
 | Report Spec JSON Schema + 校验器 | ✅ `@kiwi/report-spec` |
-| 指标库 v0 + 黄金数据集 | ✅ `@kiwi/metrics`（13 个指标，逐个手算核对） |
+| 指标引擎 + 黄金数据集 | ✅ `@kiwi/metrics`（逐个手算核对） |
 | 多币种数据模型定稿 | ✅ `@kiwi/core` + `@kiwi/ledger` + `@kiwi/store` |
 | ModelRouter 契约 | ✅ `@kiwi/model-router`（中国合规路由在构造期强制） |
 | Narrator 事实约束守卫 | ✅ 把 FR-ANA-06 变成可执行的门 |
 | 后端 API | ✅ `@kiwi/api`（SQLite 持久化、报表、捕获、导出） |
 | Web 前端 | ✅ `@kiwi/web`（已运行并截图验证） |
 | iOS 前端 | ⚠️ `@kiwi/mobile` 源码完成且类型检查通过，**未实机运行**（需 Mac） |
-| 5 / 8 个标准报表 | ✅ 其余 3 个缺 v0 指标库尚无的指标，已列出缺什么 |
+| 8 / 8 个标准报表 | ✅ 全部可用 |
+| 指标库 | ✅ 20 个（原计划 12 个） |
+| **MCP Server** | ✅ `@kiwi/mcp`，7 个工具，真实协议联调通过 |
+| Skill 导出 | ✅ 报表 → agentskills.io 规范的三文件包 |
+| MCP OAuth 2.1 + 动态注册 | ⬜ 需要部署授权服务器（当前为作用域 bearer token） |
 | 500+ 真实收据评测集 | ⬜ 需要真实票据素材 |
 | AI 提取 Spike + 准确率验证 | ⬜ 需要 API Key（当前走确定性 stub 提取器） |
 | Prompt injection 对抗测试 | ⬜ 用例集可先写，跑通需要模型 |
@@ -57,7 +62,7 @@ packages/                                    apps/
   core          金额 · 币种 · 汇率 · 周期      api      Fastify REST
   ledger        实体 · 不变量 · schema         web      React + Vite
   store         SQLite 持久化                  mobile   Expo（iOS 优先）
-  metrics       指标引擎 —— 唯一产数字的地方
+  metrics       指标引擎 —— 唯一产数字的地方        mcp      远程 MCP Server
   report-spec   Spec 契约 · 执行器 · 守卫
   model-router  任务契约 · 双轨路由
   client        API 客户端 + 展示层（两端共用）

@@ -2,6 +2,7 @@
 
 ```
 @kiwi/api      Fastify REST API over the ledger, the metric engine and reports
+@kiwi/mcp      Remote MCP server — the user's own AI, reading their own ledger
 @kiwi/web      React + Vite web app
 @kiwi/mobile   Expo / React Native, iOS-first
 ```
@@ -13,6 +14,7 @@ pnpm install
 pnpm dev          # API on :8787, in-memory ledger, seeded with demo data
 pnpm dev:web      # web app on :5173, proxied to the API
 pnpm dev:ios      # iOS app — needs a Mac with Xcode
+pnpm dev:mcp      # MCP server on :8788/mcp
 ```
 
 `KIWI_DB=./kiwi.db pnpm dev` keeps the data between restarts. There is no
@@ -52,6 +54,53 @@ lands below the auto-accept bar and waits in the confirmation queue, because a
 parser is not a model and its guesses are not facts.
 
 Swapping in a real provider is a routing-table change; nothing above it moves.
+
+## The MCP server
+
+`pnpm dev:mcp` serves seven tools at `http://localhost:8788/mcp` over Streamable
+HTTP. Two demo tokens: `demo-read` and `demo-write`.
+
+```
+kiwi_list_schema         read-only   accounts, categories, currencies, every
+                                     metric and report that exists
+kiwi_query_transactions  read-only   individual rows, capped at 200
+kiwi_run_metric          read-only   one named figure, with its sources
+kiwi_run_report          read-only   a standard report or an ad-hoc spec
+kiwi_search_receipts     read-only   what has an original behind it
+kiwi_add_transaction     WRITE       lands in the confirmation queue
+kiwi_save_report         WRITE       stores a spec to re-run
+```
+
+Four things are enforced rather than documented:
+
+- **Read-only unless the owner says otherwise.** A write tool on a read-only
+  connection refuses and says why.
+- **Anything an outside AI writes waits for a human.** It goes to the
+  confirmation queue and moves no figure until accepted.
+- **Every call is logged** — `store.recordMcpAccess` — and the log reads in
+  plain words: *"claude-desktop read 218 transactions between 2026-03-01 and
+  2026-03-31"*. The web app shows it.
+- **Internal ids stay behind.** A row that leaves carries an account *name*; a
+  receipt says what kind of original it has, never where it is stored. Pages
+  cap at 200 rows and say when they capped.
+
+The server's `instructions` tell a connecting model to call `kiwi_list_schema`
+first and never to add up rows itself — figures come from `kiwi_run_metric` or
+`kiwi_run_report`, which return them with the transactions behind them.
+
+Authentication is a scoped bearer token. **OAuth 2.1 with PKCE and dynamic
+client registration (FR-OPN-04) is not built** — it needs a deployed
+authorisation server. The scope model, the read-only default and the audit
+trail, which are what decide what an outside AI can actually do, are in place
+and tested.
+
+## Exporting a report as a Skill
+
+`GET /api/ledgers/:id/reports/:reportId/skill` returns a three-file bundle:
+`SKILL.md` (agentskills.io frontmatter), `spec.json`, `README.md`. The spec
+travels; the figures do not. The SKILL.md tells the receiving agent to call
+`kiwi_run_report` and states the rule that makes it safe: *every number you
+write must appear in the fact set*.
 
 ## What the iOS app still needs
 

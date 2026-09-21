@@ -178,6 +178,36 @@ CREATE TABLE IF NOT EXISTS event_log (
 
 CREATE INDEX IF NOT EXISTS event_by_entity ON event_log(entity, entity_id, at);
 
+-- A report the user (or their own AI) saved. The spec is the whole thing:
+-- re-running it later reproduces the report, and exporting it produces a Skill.
+CREATE TABLE IF NOT EXISTS saved_report (
+  id         TEXT PRIMARY KEY,
+  ledger_id  TEXT NOT NULL REFERENCES ledger(id),
+  name       TEXT NOT NULL,
+  spec       TEXT NOT NULL,
+  created_by TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  deleted_at TEXT
+);
+
+CREATE INDEX IF NOT EXISTS saved_report_by_ledger
+  ON saved_report(ledger_id) WHERE deleted_at IS NULL;
+
+-- Every read an outside AI makes, so the user can see what left the ledger
+-- and when (FR-OPN-07). Append-only, like event_log.
+CREATE TABLE IF NOT EXISTS mcp_access_log (
+  id         TEXT PRIMARY KEY,
+  ledger_id  TEXT NOT NULL REFERENCES ledger(id),
+  client     TEXT NOT NULL,
+  tool       TEXT NOT NULL,
+  scope      TEXT NOT NULL CHECK (scope IN ('read','write')),
+  summary    TEXT NOT NULL,
+  row_count  INTEGER NOT NULL DEFAULT 0,
+  at         TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS mcp_access_by_ledger ON mcp_access_log(ledger_id, at DESC);
+
 -- Historical rates are cached forever and never refreshed: a March conversion
 -- must still read the same a year later (FR-LED-03).
 CREATE TABLE IF NOT EXISTS fx_rate_cache (

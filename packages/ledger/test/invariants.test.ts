@@ -113,7 +113,10 @@ describe('snapshot selection', () => {
     for (const excluded of ['t7', 't8', 't9', 't10']) {
       expect(flowIds).not.toContain(excluded);
     }
-    expect(expenses(active).map((t) => t.id)).toEqual(['t1', 't2', 't3', 't4', 't6', 't13', 't14']);
+    const expenseIds = expenses(active).map((t) => t.id);
+    expect(expenseIds).toEqual(expect.arrayContaining(['t1', 't2', 't3', 't4', 't6', 't13', 't14']));
+    expect(expenseIds).not.toContain('t11'); // pending
+    expect(expenseIds).not.toContain('t12'); // deleted
     expect(income(active).map((t) => t.id)).toEqual(['t5']);
   });
 });

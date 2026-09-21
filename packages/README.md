@@ -10,6 +10,8 @@ without an API key and makes a report reproducible.
 @kiwi/metrics       the metric registry — the only producer of numbers
 @kiwi/report-spec   the spec contract, its executor, and the narrator guard
 @kiwi/model-router  task contracts and provider routing
+@kiwi/store         SQLite persistence on node:sqlite
+@kiwi/client        API client and formatters, shared by both apps
 ```
 
 ## The dependency direction
@@ -34,7 +36,7 @@ model can be swapped or a provider added without touching a figure.
 
 ```bash
 pnpm install
-pnpm test        # 139 tests
+pnpm test        # 211 tests
 pnpm typecheck
 ```
 

@@ -36,9 +36,13 @@ const EXPENSE_TOTAL = 47_456;
 const INCOME_TOTAL = 650_000;
 
 describe('registry', () => {
-  it('exposes the v0 metric library', () => {
-    expect(defaultRegistry.ids()).toHaveLength(13);
+  it('exposes the metric library', () => {
+    expect(defaultRegistry.ids()).toHaveLength(20);
     expect(defaultRegistry.ids()).toContain('expense_total');
+    // The metrics the three previously-pending standard reports were waiting on.
+    for (const id of ['recurring_detected', 'large_anomalies', 'deductible_total']) {
+      expect(defaultRegistry.ids()).toContain(id);
+    }
   });
 
   it('rejects a metric it does not know rather than approximating one', () => {

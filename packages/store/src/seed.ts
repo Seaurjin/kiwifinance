@@ -16,13 +16,15 @@ import type { LedgerStore } from './store.ts';
 const day = (month: string, dayOfMonth: number): IsoDate =>
   `${month}-${String(dayOfMonth).padStart(2, '0')}`;
 
-function previousMonthKey(month: string): string {
+function monthKeyOffset(month: string, offset: number): string {
   const year = Number(month.slice(0, 4));
-  const monthNumber = Number(month.slice(5, 7));
-  return monthNumber === 1
-    ? `${year - 1}-12`
-    : `${year}-${String(monthNumber - 1).padStart(2, '0')}`;
+  const monthNumber = Number(month.slice(5, 7)) + offset;
+  const shiftedYear = year + Math.floor((monthNumber - 1) / 12);
+  const shiftedMonth = ((((monthNumber - 1) % 12) + 12) % 12) + 1;
+  return `${shiftedYear}-${String(shiftedMonth).padStart(2, '0')}`;
 }
+
+const previousMonthKey = (month: string): string => monthKeyOffset(month, -1);
 
 export interface SeedResult {
   ledgerId: string;
@@ -56,7 +58,9 @@ export function seedDemo(store: LedgerStore, today: IsoDate): SeedResult {
   store.createTransaction({
     ledgerId: id, accountId: jpy.id, kind: 'expense', date: day(thisMonth, 8),
     amountMinor: -30_000, currency: 'JPY', fxRate: 0.009, fxRateSource: 'card_statement',
-    categoryId: cat(id, 'flights'), merchantName: 'JAL', tags: ['travel'],
+    // Also tagged claimable, so the tax pack has something in it without
+    // adding money that would move the totals away from the golden dataset.
+    categoryId: cat(id, 'flights'), merchantName: 'JAL', tags: ['travel', 'deductible'],
     source: 'screenshot', provenanceId: prov('screenshot', 'demo/jal-boarding.png', 'stub-extractor@0'), aiConfidence: 0.97,
   });
 
@@ -98,6 +102,28 @@ export function seedDemo(store: LedgerStore, today: IsoDate): SeedResult {
   store.createTransaction({ ledgerId: id, accountId: sgd.id, kind: 'expense', date: day(lastMonth, 10), amountMinor: -12_000, currency: 'SGD', categoryId: cat(id, 'groceries'), merchantName: 'FairPrice' });
   store.createTransaction({ ledgerId: id, accountId: sgd.id, kind: 'expense', date: day(lastMonth, 14), amountMinor: -6_000, currency: 'SGD', categoryId: cat(id, 'restaurants'), merchantName: 'Tiong Bahru Bakery' });
   store.createTransaction({ ledgerId: id, accountId: sgd.id, kind: 'income', date: day(lastMonth, 25), amountMinor: 650_000, currency: 'SGD', categoryId: cat(id, 'salary'), merchantName: 'Employer' });
+
+  // A monthly subscription, four charges back, with a price rise on the last
+  // one. Recurring detection needs a cadence to find, and a cadence is not
+  // visible inside a single month.
+  const subscription: [number, number][] = [
+    [-5, -1_998],
+    [-4, -1_998],
+    [-3, -1_998],
+    [-2, -2_298],
+  ];
+  for (const [offset, amountMinor] of subscription) {
+    store.createTransaction({
+      ledgerId: id,
+      accountId: sgd.id,
+      kind: 'expense',
+      date: day(monthKeyOffset(thisMonth, offset), 6),
+      amountMinor,
+      currency: 'SGD',
+      categoryId: cat(id, 'streaming'),
+      merchantName: 'Netflix',
+    });
+  }
 
   // A correction the user already made, so the fast path has something in it.
   store.learnRule({ ledgerId: id, matchType: 'merchant_exact', pattern: 'FairPrice', categoryId: cat(id, 'groceries') });

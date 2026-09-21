@@ -23,6 +23,8 @@ import {
   STANDARD_REPORTS,
   PENDING_REPORTS,
   executeSpec,
+  exportReportAsSkill,
+  parseSpec,
   standardReport,
   validateSpec,
 } from '@kiwi/report-spec';
@@ -258,6 +260,64 @@ export function buildServer(options: ServerOptions): FastifyInstance {
       return { report: { id: report.id, title: report.title }, spec, factSet };
     },
   );
+
+  /**
+   * A report packaged as an Agent Skill (FR-OPN-02/03). Returns the file map
+   * rather than an archive, so the client can show it before saving it.
+   */
+  app.get<{ Params: LedgerParams & { reportId: string } }>(
+    '/api/ledgers/:ledgerId/reports/:reportId/skill',
+    async (request, reply) => {
+      const ledger = requireLedger(request.params.ledgerId);
+      const report = standardReport(request.params.reportId);
+      const saved = report === undefined ? store.getSavedReport(request.params.reportId) : null;
+
+      if (report === undefined && saved === null) {
+        return reply.status(404).send({ error: 'unknown_report' });
+      }
+
+      const name = report?.title ?? saved?.name ?? 'Report';
+      const spec =
+        report === undefined
+          ? parseSpec(saved?.spec)
+          : report.build(monthOf(options.today()), ledger.baseCurrency);
+
+      return {
+        bundle: exportReportAsSkill(name, spec, { ledgerName: ledger.name }),
+      };
+    },
+  );
+
+  /** Reports the user, or their own AI over MCP, has saved (FR-ANA-08). */
+  app.get<{ Params: LedgerParams }>('/api/ledgers/:ledgerId/saved-reports', async (request) => {
+    requireLedger(request.params.ledgerId);
+    return { reports: store.listSavedReports(request.params.ledgerId) };
+  });
+
+  app.post<{ Params: LedgerParams; Body: { name: string; spec: unknown } }>(
+    '/api/ledgers/:ledgerId/saved-reports',
+    async (request, reply) => {
+      requireLedger(request.params.ledgerId);
+      const spec = parseSpec(request.body.spec);
+      const saved = store.saveReport({
+        ledgerId: request.params.ledgerId,
+        name: request.body.name,
+        spec,
+        createdBy: 'user',
+      });
+      return reply.status(201).send({ report: saved });
+    },
+  );
+
+  /**
+   * What an outside AI has read, in the owner's words (FR-OPN-07).
+   * This is the page that makes an MCP connection something a person can
+   * supervise rather than something they have to trust.
+   */
+  app.get<{ Params: LedgerParams }>('/api/ledgers/:ledgerId/mcp-access', async (request) => {
+    requireLedger(request.params.ledgerId);
+    return { entries: store.listMcpAccess(request.params.ledgerId, 50) };
+  });
 
   // -------------------------------------------------------------------------
   // Capture

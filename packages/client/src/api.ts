@@ -192,6 +192,27 @@ export class KiwiClient {
     });
   }
 
+  skillBundle(
+    ledgerId: string,
+    reportId: string,
+  ): Promise<{ bundle: { slug: string; files: Record<string, string> } }> {
+    return this.#request(`/api/ledgers/${ledgerId}/reports/${reportId}/skill`);
+  }
+
+  mcpAccess(ledgerId: string): Promise<{
+    entries: {
+      id: string;
+      client: string;
+      tool: string;
+      scope: 'read' | 'write';
+      summary: string;
+      rowCount: number;
+      at: string;
+    }[];
+  }> {
+    return this.#request(`/api/ledgers/${ledgerId}/mcp-access`);
+  }
+
   exportUrl(ledgerId: string): string {
     return `${this.#baseUrl}/api/ledgers/${ledgerId}/export.csv`;
   }

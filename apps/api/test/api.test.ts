@@ -34,14 +34,15 @@ describe('health and discovery', () => {
 
   it('publishes the metric catalogue a planner or MCP client would read', async () => {
     const body = json(await app.inject({ url: '/api/metrics' }));
-    expect(body.metrics).toHaveLength(13);
+    expect(body.metrics).toHaveLength(20);
     expect(body.metrics[0]).toHaveProperty('description');
   });
 
   it('lists the standard reports and says which are still waiting on metrics', async () => {
     const body = json(await app.inject({ url: '/api/reports' }));
     expect(body.standard.map((r: { id: string }) => r.id)).toContain('monthly_review');
-    expect(body.pending.map((r: { id: string }) => r.id)).toContain('subscription_audit');
+    expect(body.standard.map((r: { id: string }) => r.id)).toContain('subscription_audit');
+    expect(body.pending).toEqual([]);
   });
 });
 
@@ -148,9 +149,9 @@ describe('reports', () => {
   });
 
   it('names what is available when a report does not exist', async () => {
-    const response = await app.inject({ url: `/api/ledgers/${ledgerId}/reports/subscription_audit` });
+    const response = await app.inject({ url: `/api/ledgers/${ledgerId}/reports/no_such_report` });
     expect(response.statusCode).toBe(404);
-    expect(json(response).pending.map((r: { id: string }) => r.id)).toContain('subscription_audit');
+    expect(json(response).available).toContain('monthly_review');
   });
 
   it('runs an ad-hoc spec', async () => {
@@ -233,6 +234,71 @@ describe('capture', () => {
     expect(second.status).toBe('confirmed');
     expect(first.provenanceId).not.toBeNull();
     expect(store.getProvenance(first.provenanceId)?.kind).toBe('voice');
+  });
+});
+
+describe('opening the ledger up', () => {
+  it('packages a report as a Skill that runs somewhere else', async () => {
+    const body = json(
+      await app.inject({ url: `/api/ledgers/${ledgerId}/reports/monthly_review/skill` }),
+    );
+
+    expect(body.bundle.slug).toBe('monthly-review');
+    expect(Object.keys(body.bundle.files).sort()).toEqual(['README.md', 'SKILL.md', 'spec.json']);
+
+    const skill = body.bundle.files['SKILL.md'] as string;
+    expect(skill).toMatch(/^---\nname: "monthly-review"/);
+    expect(skill).toMatch(/kiwi_run_report/);
+    // The rule that makes the export safe to hand to another agent.
+    expect(skill).toMatch(/Every number you write must appear in the fact set/);
+
+    // The spec travels; the figures do not.
+    const spec = JSON.parse(body.bundle.files['spec.json'] as string);
+    expect(spec.blocks[0].metrics).toContain('expense_total');
+    expect(body.bundle.files['spec.json']).not.toContain('47456');
+  });
+
+  it('saves a report and refuses one that could never run', async () => {
+    const good = await app.inject({
+      method: 'POST',
+      url: `/api/ledgers/${ledgerId}/saved-reports`,
+      payload: {
+        name: 'My cross-border view',
+        spec: {
+          version: 1,
+          title: 'Cross-border',
+          period: { from: '2026-03-01', to: '2026-03-31' },
+          blocks: [{ type: 'chart', viz: 'bar', metric: 'spend_by_currency' }],
+        },
+      },
+    });
+    expect(good.statusCode).toBe(201);
+
+    const bad = await app.inject({
+      method: 'POST',
+      url: `/api/ledgers/${ledgerId}/saved-reports`,
+      payload: { name: 'Broken', spec: { version: 1, title: 'B', period: {}, blocks: [] } },
+    });
+    expect(bad.statusCode).toBe(422);
+
+    const listed = json(await app.inject({ url: `/api/ledgers/${ledgerId}/saved-reports` }));
+    expect(listed.reports).toHaveLength(1);
+    expect(listed.reports[0].name).toBe('My cross-border view');
+  });
+
+  it('shows what an outside AI read, in words the owner can read', async () => {
+    store.recordMcpAccess({
+      ledgerId,
+      client: 'claude-desktop',
+      tool: 'kiwi_query_transactions',
+      scope: 'read',
+      summary: 'read 218 transactions between 2026-03-01 and 2026-03-31',
+      rowCount: 218,
+    });
+
+    const body = json(await app.inject({ url: `/api/ledgers/${ledgerId}/mcp-access` }));
+    expect(body.entries).toHaveLength(1);
+    expect(body.entries[0]).toMatchObject({ client: 'claude-desktop', scope: 'read', rowCount: 218 });
   });
 });
 

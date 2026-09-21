@@ -35,6 +35,8 @@
     "packages/*/test/**/*.ts",
     "apps/api/src/**/*.ts",
     "apps/api/test/**/*.ts",
+    "apps/mcp/src/**/*.ts",
+    "apps/mcp/test/**/*.ts",
     "vitest.config.ts"
   ]
 }

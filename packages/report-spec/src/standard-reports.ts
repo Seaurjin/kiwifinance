@@ -5,10 +5,10 @@
  * saved report takes, so the built-ins and a user's own reports run through the
  * identical path. There is no second, privileged rendering route.
  *
- * Five of the eight the PRD names are here. The other three
- * (subscription audit, large-anomaly review, tax pack) need metrics the v0
- * library does not have yet; they are listed in PENDING_REPORTS with what each
- * is waiting on, rather than shipped half-working.
+ * All eight the PRD names are here. The three that were waiting on metrics —
+ * subscription audit, unusual spending, tax pack — now have them: recurring
+ * charges, anomalies against a category's own median, and a tag-driven
+ * deductible total, all deterministic.
  */
 
 import type { ReportSpec, SpecBlock, SpecPeriod } from './types.ts';
@@ -18,7 +18,10 @@ export type StandardReportId =
   | 'fx_exposure'
   | 'budget_replan'
   | 'travel_settlement'
-  | 'year_in_review';
+  | 'year_in_review'
+  | 'subscription_audit'
+  | 'large_anomalies'
+  | 'tax_pack';
 
 export interface StandardReport {
   readonly id: StandardReportId;
@@ -130,14 +133,62 @@ export const STANDARD_REPORTS: readonly StandardReport[] = [
         baseCurrency,
       ),
   },
+  {
+    id: 'subscription_audit',
+    title: 'Subscription audit',
+    description: 'What you pay on a repeating schedule, and which of those went up.',
+    build: (period, baseCurrency) =>
+      spec(
+        'Subscription audit',
+        period,
+        [
+          { type: 'metric_row', title: 'Every month', metrics: ['subscription_total', 'expense_total'] },
+          { type: 'chart', title: 'Recurring charges', viz: 'bar', metric: 'recurring_detected' },
+          { type: 'table', title: 'Went up', metric: 'price_increase_alert' },
+          { type: 'narrative', focus: ['subscriptions'] },
+        ],
+        baseCurrency,
+      ),
+  },
+  {
+    id: 'large_anomalies',
+    title: 'Unusual spending',
+    description: 'Charges far larger than normal for their category.',
+    build: (period, baseCurrency) =>
+      spec(
+        'Unusual spending',
+        period,
+        [
+          { type: 'metric_row', title: 'Against normal', metrics: ['rolling_avg', 'expense_total'] },
+          { type: 'table', title: 'Stands out', metric: 'large_anomalies' },
+          { type: 'narrative', focus: ['anomalies'] },
+        ],
+        baseCurrency,
+      ),
+  },
+  {
+    id: 'tax_pack',
+    title: 'Tax preparation pack',
+    description: 'What you tagged as claimable, and the exact-category breakdown to go with it.',
+    build: (period, baseCurrency) =>
+      spec(
+        'Tax preparation pack',
+        period,
+        [
+          { type: 'metric_row', title: 'Claimable', metrics: ['deductible_total', 'expense_total'] },
+          { type: 'table', title: 'By exact category', metric: 'category_export', limit: 100 },
+          { type: 'narrative', focus: ['summary', 'data_quality'] },
+        ],
+        baseCurrency,
+      ),
+  },
 ];
 
-/** The remaining three, and the metric each is waiting on. */
-export const PENDING_REPORTS: readonly { id: string; title: string; needs: string[] }[] = [
-  { id: 'subscription_audit', title: 'Subscription audit', needs: ['recurring_detected', 'subscription_total', 'price_increase_alert'] },
-  { id: 'large_anomalies', title: 'Unusual spending', needs: ['anomaly_score', 'rolling_avg'] },
-  { id: 'tax_pack', title: 'Tax preparation pack', needs: ['deductible_total', 'category_export'] },
-];
+/**
+ * Nothing is pending any more. Kept so the API's shape does not change and a
+ * future report waiting on a metric has somewhere to be declared.
+ */
+export const PENDING_REPORTS: readonly { id: string; title: string; needs: string[] }[] = [];
 
 export function standardReport(id: string): StandardReport | undefined {
   return STANDARD_REPORTS.find((report) => report.id === id);

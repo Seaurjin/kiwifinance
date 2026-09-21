@@ -50,6 +50,8 @@ export const DEMO_CATEGORIES: Category[] = [
   category('cat-restaurants', 'Restaurants', 'cat-food', 'expense', false),
   category('cat-travel', 'Travel', null, 'expense', false),
   category('cat-flights', 'Flights', 'cat-travel', 'expense', false),
+  category('cat-subs', 'Subscriptions', null, 'expense', false),
+  category('cat-streaming', 'Streaming', 'cat-subs', 'expense', false),
   category('cat-income', 'Income', null, 'income', false),
   category('cat-salary', 'Salary', 'cat-income', 'income', false),
 ];
@@ -132,6 +134,14 @@ export const DEMO_TRANSACTIONS: Transaction[] = [
 
   // Soft-deleted — hidden, recoverable, never counted (FR-LED-12).
   txn({ id: 't12', accountId: 'acc-sgd', kind: 'expense', date: '2026-03-21', amountMinor: -9_900, currency: 'SGD', fxRate: 1, baseAmountMinor: -9_900, categoryId: 'cat-restaurants', merchantName: 'Deleted Diner', deletedAt: '2026-03-22T10:00:00.000Z' }),
+
+  // --- Autumn 2025: a monthly subscription, with a price rise on the last one.
+  // Placed well before the windows the other tests assert on, so recurring
+  // detection has something real to find without moving any existing figure.
+  txn({ id: 't20', accountId: 'acc-sgd', kind: 'expense', date: '2025-09-06', amountMinor: -1_998, currency: 'SGD', fxRate: 1, baseAmountMinor: -1_998, categoryId: 'cat-streaming', merchantName: 'Netflix' }),
+  txn({ id: 't21', accountId: 'acc-sgd', kind: 'expense', date: '2025-10-06', amountMinor: -1_998, currency: 'SGD', fxRate: 1, baseAmountMinor: -1_998, categoryId: 'cat-streaming', merchantName: 'Netflix' }),
+  txn({ id: 't22', accountId: 'acc-sgd', kind: 'expense', date: '2025-11-06', amountMinor: -1_998, currency: 'SGD', fxRate: 1, baseAmountMinor: -1_998, categoryId: 'cat-streaming', merchantName: 'Netflix' }),
+  txn({ id: 't23', accountId: 'acc-sgd', kind: 'expense', date: '2025-12-06', amountMinor: -2_298, currency: 'SGD', fxRate: 1, baseAmountMinor: -2_298, categoryId: 'cat-streaming', merchantName: 'Netflix' }),
 
   // --- February, for period-over-period -------------------------------------
   txn({ id: 't13', accountId: 'acc-sgd', kind: 'expense', date: '2026-02-10', amountMinor: -12_000, currency: 'SGD', fxRate: 1, baseAmountMinor: -12_000, categoryId: 'cat-groceries', merchantName: 'FairPrice' }),

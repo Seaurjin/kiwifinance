@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit && pnpm --filter @kiwi/web exec tsc --noEmit && pnpm --filter @kiwi/mobile exec tsc --noEmit",
-    "build:web": "pnpm --filter @kiwi/web build"
+    "build:web": "pnpm --filter @kiwi/web build",
+    "dev:mcp": "pnpm --filter @kiwi/mcp dev"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

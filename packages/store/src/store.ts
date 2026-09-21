@@ -125,6 +125,28 @@ export interface NewTransaction {
   status?: Transaction['status'];
 }
 
+export interface SavedReport {
+  id: string;
+  ledgerId: string;
+  name: string;
+  spec: unknown;
+  /** "user" or the MCP client that saved it. */
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface McpAccessEntry {
+  id: string;
+  ledgerId: string;
+  client: string;
+  tool: string;
+  scope: 'read' | 'write';
+  /** Human-readable, as shown in the app: "read 218 transactions in March". */
+  summary: string;
+  rowCount: number;
+  at: string;
+}
+
 export interface TransactionQuery {
   from?: IsoDate;
   to?: IsoDate;
@@ -572,6 +594,125 @@ export class LedgerStore {
   countEvents(entityId: string): number {
     const row = this.#db.prepare(`SELECT COUNT(*) AS n FROM event_log WHERE entity_id = ?`).get(entityId) as Row;
     return num(row['n']);
+  }
+
+  // -------------------------------------------------------------------------
+  // Saved reports (FR-ANA-08)
+  // -------------------------------------------------------------------------
+
+  saveReport(input: {
+    ledgerId: string;
+    name: string;
+    spec: unknown;
+    createdBy: string;
+  }): SavedReport {
+    const report: SavedReport = {
+      id: randomUUID(),
+      ledgerId: input.ledgerId,
+      name: input.name,
+      spec: input.spec,
+      createdBy: input.createdBy,
+      createdAt: this.#now(),
+    };
+    this.#db
+      .prepare(
+        `INSERT INTO saved_report (id, ledger_id, name, spec, created_by, created_at)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        report.id, report.ledgerId, report.name,
+        JSON.stringify(report.spec), report.createdBy, report.createdAt,
+      );
+    return report;
+  }
+
+  listSavedReports(ledgerId: string): SavedReport[] {
+    const rows = this.#db
+      .prepare(
+        `SELECT * FROM saved_report WHERE ledger_id = ? AND deleted_at IS NULL ORDER BY created_at DESC`,
+      )
+      .all(ledgerId) as Row[];
+    return rows.map((row) => ({
+      id: str(row['id']),
+      ledgerId: str(row['ledger_id']),
+      name: str(row['name']),
+      spec: JSON.parse(str(row['spec'])) as unknown,
+      createdBy: str(row['created_by']),
+      createdAt: str(row['created_at']),
+    }));
+  }
+
+  getSavedReport(id: string): SavedReport | null {
+    const row = this.#db
+      .prepare(`SELECT * FROM saved_report WHERE id = ? AND deleted_at IS NULL`)
+      .get(id) as Row | undefined;
+    if (row === undefined) return null;
+    return {
+      id: str(row['id']),
+      ledgerId: str(row['ledger_id']),
+      name: str(row['name']),
+      spec: JSON.parse(str(row['spec'])) as unknown,
+      createdBy: str(row['created_by']),
+      createdAt: str(row['created_at']),
+    };
+  }
+
+  // -------------------------------------------------------------------------
+  // MCP access log (FR-OPN-07)
+  // -------------------------------------------------------------------------
+
+  /**
+   * Records one tool call made by an outside AI. Written before the result is
+   * returned, so a read that happened is logged even if the response is never
+   * delivered — the user's question is "what left my ledger", not "what
+   * arrived somewhere".
+   */
+  recordMcpAccess(entry: {
+    ledgerId: string;
+    client: string;
+    tool: string;
+    scope: 'read' | 'write';
+    summary: string;
+    rowCount?: number;
+  }): McpAccessEntry {
+    const record: McpAccessEntry = {
+      id: randomUUID(),
+      ledgerId: entry.ledgerId,
+      client: entry.client,
+      tool: entry.tool,
+      scope: entry.scope,
+      summary: entry.summary,
+      rowCount: entry.rowCount ?? 0,
+      at: this.#now(),
+    };
+    this.#db
+      .prepare(
+        `INSERT INTO mcp_access_log (id, ledger_id, client, tool, scope, summary, row_count, at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        record.id, record.ledgerId, record.client, record.tool,
+        record.scope, record.summary, record.rowCount, record.at,
+      );
+    return record;
+  }
+
+  listMcpAccess(ledgerId: string, limit = 50): McpAccessEntry[] {
+    const rows = this.#db
+      // rowid breaks ties: several calls can share a timestamp, and "most
+      // recent first" has to hold anyway.
+      .prepare(`SELECT * FROM mcp_access_log WHERE ledger_id = ? ORDER BY at DESC, rowid DESC LIMIT ?`)
+      .all(ledgerId, limit) as Row[];
+    return rows.map((row) => ({
+      id: str(row['id']),
+      ledgerId: str(row['ledger_id']),
+      client: str(row['client']),
+      tool: str(row['tool']),
+      scope: str(row['scope']) as 'read' | 'write',
+      summary: str(row['summary']),
+      rowCount: num(row['row_count']),
+      at: str(row['at']),
+    }));
   }
 
   // -------------------------------------------------------------------------
