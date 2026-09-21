@@ -41,7 +41,7 @@ pnpm dev:mcp    # MCP Server on :8788/mcp
 | 500+ 真实收据评测集 | ⬜ 需要真实票据素材 |
 | AI 提取 Spike + 准确率验证 | ⬜ 需要 API Key（当前走确定性 stub 提取器） |
 | Prompt injection 对抗测试 | ⬜ 用例集可先写，跑通需要模型 |
-| iOS 原生扩展（Share Extension / App Intents / Widget） | ⬜ 需要 Mac |
+| iOS 原生扩展（Share Extension / App Intents / Widget） | ⚠️ Swift 源码 + Xcode 接入步骤已完成，**未编译**（需 Mac）|
 
 代码说明见 [`packages/README.md`](packages/README.md) 与 [`apps/README.md`](apps/README.md)。
 

@@ -27,6 +27,7 @@ import {
   View,
 } from 'react-native';
 import { BarSeries, KpiRow, type DrillTarget } from './src/components/Facts.tsx';
+import { hasNativeShell, syncNativeShell } from './src/native/shell.ts';
 import { CaptureBar, TraceSheet, TransactionRows } from './src/components/Ledger.tsx';
 import { useTheme, type as typeScale } from './src/theme.ts';
 
@@ -60,6 +61,8 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  /** Screenshots shared into Kiwi that are waiting for an extractor that reads images. */
+  const [waitingImages, setWaitingImages] = useState(0);
 
   const categoryNames = useMemo(
     () => new Map(categories.map((category) => [category.id, category.name])),
@@ -85,6 +88,23 @@ export default function App() {
     setFactSet(reportResult.factSet);
     setRecent(recentList.transactions);
     setPending(review.transactions);
+
+    // Tell the extensions where the ledger is, cache the widget's figure, and
+    // take in anything the share sheet captured while it was offline. A
+    // JS-only build has no native shell and skips all of it.
+    if (hasNativeShell) {
+      const shell = await syncNativeShell(client, {
+        apiUrl: API_URL,
+        ledgerId: first.id,
+        accountId: overview.accounts[0]?.id ?? '',
+        pendingCount: overview.pendingCount,
+      });
+      setWaitingImages(shell.waitingImages);
+      if (shell.committed > 0) {
+        const again = await client.transactions(first.id, { status: 'pending_review', limit: 20 });
+        setPending(again.transactions);
+      }
+    }
   }, []);
 
   const run = useCallback(
@@ -236,6 +256,15 @@ export default function App() {
                   accountId={accountId}
                   onCommitted={() => void run(reportId)}
                 />
+              </Section>
+            )}
+
+            {waitingImages > 0 && (
+              <Section theme={theme} title={`Shared screenshots · ${waitingImages}`}>
+                <Text style={[typeScale.meta, { color: theme.muted }]}>
+                  Held until Kiwi can read an image. They are not in any figure above, and nothing
+                  has been thrown away.
+                </Text>
               </Section>
             )}
 

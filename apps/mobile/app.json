@@ -13,7 +13,15 @@
       "infoPlist": {
         "NSCameraUsageDescription": "Photograph a receipt to record it.",
         "NSPhotoLibraryUsageDescription": "Read a payment screenshot to record it.",
-        "NSMicrophoneUsageDescription": "Say what you spent instead of typing it."
+        "NSMicrophoneUsageDescription": "Say what you spent instead of typing it.",
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true
+        }
+      },
+      "entitlements": {
+        "com.apple.security.application-groups": [
+          "group.app.kiwi.finance"
+        ]
       }
     }
   }

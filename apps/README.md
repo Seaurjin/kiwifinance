@@ -115,16 +115,31 @@ travels; the figures do not. The SKILL.md tells the receiving agent to call
 `kiwi_run_report` and states the rule that makes it safe: *every number you
 write must appear in the fact set*.
 
-## What the iOS app still needs
+## The native iOS shell
 
-The screen, the capture flow, the trace sheet and the shared client are
-written and typecheck, but it has not been run — this environment has no macOS
-or simulator. Before it ships it needs, on a Mac:
+Three of the capture paths the PRD asks for run outside React Native, each in
+its own process: the **Share Extension** (FR-CAP-05), **App Intents** for Siri,
+Shortcuts and Back Tap (FR-CAP-06), and the **WidgetKit** widget (FR-CAP-07).
+The Swift sources are in [`mobile/native/ios/`](mobile/native/ios/README.md),
+which also has the step-by-step Xcode setup.
 
-- a first `expo run:ios` to generate the native project
-- the Share Extension (FR-CAP-05), App Intents (FR-CAP-06) and the WidgetKit
-  widget (FR-CAP-07) — all three are Swift targets with no React Native
-  equivalent, and all three hand off into the same extract → review → commit
-  path the capture bar uses
-- on-device testing of the confirmation queue, which is where a capture goes
-  when the extractor is unsure
+All three go through the same API the capture bar uses, so a receipt shared
+from Photos and a receipt typed into the app are the same kind of thing: read
+into drafts, held for confirmation when the extractor is unsure, and invisible
+to every figure until confirmed. The widget reads `daily_allowance` out of a
+fact set rather than working anything out, and shows the engine's own words
+when there is no budget to divide up.
+
+An App Group carries what the extensions need — the API's address, the ledger
+and account ids, and the last figure the app cached — plus an **outbox** for
+captures taken with no network. `src/native/shell.ts` publishes the first and
+drains the second, and is a no-op in a build without the native targets.
+
+**None of the Swift has been compiled**: this environment has no macOS and no
+Swift toolchain. The TypeScript side is typechecked. What still needs a Mac:
+
+- `expo prebuild -p ios`, then adding the three targets in Xcode as the README
+  describes
+- a build, and on-device testing of the confirmation queue
+- an Expo config plugin, if the target layout is to survive
+  `expo prebuild --clean` without being re-added by hand
