@@ -1,0 +1,14 @@
+{
+  "name": "@kiwi/metrics",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The deterministic metric engine. The only place in the system where a number is produced (PRD P-1).",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@kiwi/core": "workspace:*",
+    "@kiwi/ledger": "workspace:*"
+  }
+}

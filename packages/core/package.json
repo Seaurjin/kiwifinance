@@ -1,0 +1,10 @@
+{
+  "name": "@kiwi/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Money, currency and FX primitives. Implements PRD principle P-2 (multi-currency is the foundation).",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

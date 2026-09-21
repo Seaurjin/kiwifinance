@@ -12,7 +12,26 @@ AI 原生的个人财务数据层。
 
 ## 当前状态
 
-调研与架构设计阶段（Phase 0 前）。尚无代码。
+**Phase 0 进行中。** 确定性内核已落地并全部通过测试（139 个测试，typecheck 干净）。
+
+```bash
+pnpm install && pnpm test && pnpm typecheck
+```
+
+| Phase 0 任务 | 状态 |
+|---|---|
+| Report Spec JSON Schema + 校验器 | ✅ `@kiwi/report-spec` |
+| 指标库 v0 + 黄金数据集 | ✅ `@kiwi/metrics`（13 个指标，逐个手算核对） |
+| 多币种数据模型定稿 | ✅ `@kiwi/core` + `@kiwi/ledger`（含 SQL DDL 与不变量校验） |
+| ModelRouter 契约 | ✅ `@kiwi/model-router`（含中国合规路由的构造期强制） |
+| Narrator 事实约束守卫 | ✅ 超出计划范围，把 FR-ANA-06 变成可执行的门 |
+| 500+ 真实收据评测集 | ⬜ 需要真实票据素材 |
+| AI 提取 Spike + 准确率验证 | ⬜ 需要 API Key |
+| Prompt injection 对抗测试 | ⬜ 用例集可先写，跑通需要模型 |
+| 两段式提取对照实验 | ⬜ 需要模型 |
+| 核心 6 页设计稿 | ⬜ |
+
+代码结构与设计说明见 [`packages/README.md`](packages/README.md)。
 
 ## 文档
 

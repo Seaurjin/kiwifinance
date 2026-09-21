@@ -1,0 +1,16 @@
+{
+  "name": "@kiwi/report-spec",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The Report Spec contract: schema, validator, executor and the narrator number guard.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@kiwi/core": "workspace:*",
+    "@kiwi/ledger": "workspace:*",
+    "@kiwi/metrics": "workspace:*",
+    "ajv": "^8.17.1"
+  }
+}

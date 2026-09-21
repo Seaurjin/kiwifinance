@@ -1,0 +1,13 @@
+{
+  "name": "@kiwi/ledger",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Multi-currency ledger model: entities, invariants, schema and the seed category tree.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@kiwi/core": "workspace:*"
+  }
+}

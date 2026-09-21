@@ -1,0 +1,13 @@
+{
+  "name": "@kiwi/model-router",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Task contracts and provider routing. Product code names a task, never a model.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1"
+  }
+}
