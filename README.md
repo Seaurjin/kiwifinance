@@ -14,6 +14,8 @@ AI 原生的个人财务数据层。
 
 **确定性内核 + 前后端 + MCP Server + 自然语言 Planner 已就位**（273 个测试，typecheck 干净）。
 
+详细步骤见 **[`docs/05-how-to-run.md`](docs/05-how-to-run.md)**。
+
 ```bash
 pnpm install
 pnpm dev        # API on :8787，内存账本，已填充演示数据
@@ -49,6 +51,7 @@ pnpm dev:mcp    # MCP Server on :8788/mcp
 
 | 文档 | 内容 |
 |---|---|
+| **[`docs/05-how-to-run.md`](docs/05-how-to-run.md)** | **如何运行与测试** —— 网页版 5 分钟跑起来、测试、MCP 联调、iOS 真机与 TestFlight、常见问题 |
 | **[`docs/PRD.md`](docs/PRD.md)** | **产品需求文档 —— 需求的唯一真源。**编号化的功能/非功能需求、验收标准、发布计划、待决策项 |
 | [`docs/00-project-prompt.md`](docs/00-project-prompt.md) | 可直接粘贴给任何 AI 的项目上下文 prompt（自包含） |
 | [`docs/01-market-research.md`](docs/01-market-research.md) | 市场与竞品调研：咔皮记账拆解、海外/中国/华人东南亚三个市场、定位支柱、风险清单 |
