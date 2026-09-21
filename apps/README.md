@@ -94,6 +94,19 @@ authorisation server. The scope model, the read-only default and the audit
 trail, which are what decide what an outside AI can actually do, are in place
 and tested.
 
+## Asking for a report
+
+`POST /api/ledgers/:id/reports/plan` takes `{ "question": "…" }` and answers
+with the **plan and the figures in one round trip**. The plan comes first on
+screen, deliberately: the period the planner settled on, every filter it
+applied, and anything in the question it could not answer, before a single
+number. A number whose question you cannot see is a number you have to trust.
+
+The API defaults to the deterministic `TemplatePlanner`, so this works with no
+credential. `buildServer({ planner })` takes a `RouterPlanner` instead once a
+provider key exists; nothing else in the API changes, and a model's spec is
+validated exactly as hard as a hand-written one.
+
 ## Exporting a report as a Skill
 
 `GET /api/ledgers/:id/reports/:reportId/skill` returns a three-file bundle:

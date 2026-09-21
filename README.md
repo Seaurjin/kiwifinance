@@ -12,7 +12,7 @@ AI 原生的个人财务数据层。
 
 ## 当前状态
 
-**确定性内核 + 前后端 + MCP Server 已就位**（211 个测试，typecheck 干净）。
+**确定性内核 + 前后端 + MCP Server + 自然语言 Planner 已就位**（273 个测试，typecheck 干净）。
 
 ```bash
 pnpm install
@@ -36,6 +36,7 @@ pnpm dev:mcp    # MCP Server on :8788/mcp
 | 指标库 | ✅ 20 个（原计划 12 个） |
 | **MCP Server** | ✅ `@kiwi/mcp`，7 个工具，真实协议联调通过 |
 | Skill 导出 | ✅ 报表 → agentskills.io 规范的三文件包 |
+| **自然语言报表** | ✅ `@kiwi/planner`（一句话 → Report Spec → 引擎算数；中英文；无 Key 可跑） |
 | MCP OAuth 2.1 + 动态注册 | ⬜ 需要部署授权服务器（当前为作用域 bearer token） |
 | 500+ 真实收据评测集 | ⬜ 需要真实票据素材 |
 | AI 提取 Spike + 准确率验证 | ⬜ 需要 API Key（当前走确定性 stub 提取器） |
@@ -64,6 +65,7 @@ packages/                                    apps/
   store         SQLite 持久化                  mobile   Expo（iOS 优先）
   metrics       指标引擎 —— 唯一产数字的地方        mcp      远程 MCP Server
   report-spec   Spec 契约 · 执行器 · 守卫
+  planner       一句话 → Report Spec
   model-router  任务契约 · 双轨路由
   client        API 客户端 + 展示层（两端共用）
 ```

@@ -1,0 +1,16 @@
+{
+  "name": "@kiwi/planner",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Plain language in, Report Spec out. The spec is the answer; the numbers are not.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@kiwi/core": "workspace:*",
+    "@kiwi/metrics": "workspace:*",
+    "@kiwi/model-router": "workspace:*",
+    "@kiwi/report-spec": "workspace:*"
+  }
+}

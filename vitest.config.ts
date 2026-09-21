@@ -12,6 +12,7 @@ export default defineConfig({
       '@kiwi/metrics': pkg('metrics'),
       '@kiwi/model-router': pkg('model-router'),
       '@kiwi/report-spec': pkg('report-spec'),
+      '@kiwi/planner': pkg('planner'),
       '@kiwi/store': pkg('store'),
       '@kiwi/client': pkg('client'),
     },

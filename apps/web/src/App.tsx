@@ -7,12 +7,13 @@
  * path, and no figure on screen was computed by this app.
  */
 
-import { KiwiClient, formatPeriod, isScalar, isSeries } from '@kiwi/client';
+import { KiwiClient, formatPeriod, isScalar, isSeries, type ReportPlan } from '@kiwi/client';
 import type { FactSet } from '@kiwi/report-spec';
 import type { Category, Ledger, Transaction } from '@kiwi/ledger';
 import type { ScalarFact, SeriesFact } from '@kiwi/metrics';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { BarSeries, KpiRow, SeriesTable } from './components/Facts.tsx';
+import { AskBar } from './components/Ask.tsx';
 import { CaptureBar } from './components/Capture.tsx';
 import { SourceDrawer, TraceDrawer, TransactionRows } from './components/Transactions.tsx';
 
@@ -45,6 +46,9 @@ export default function App() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [reportId, setReportId] = useState<string>('monthly_review');
   const [factSet, setFactSet] = useState<FactSet | null>(null);
+  const [plan, setPlan] = useState<ReportPlan | null>(null);
+  /** Set when a planned report has been saved, so it can be exported as a Skill. */
+  const [savedReportId, setSavedReportId] = useState<string | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [pending, setPending] = useState<Transaction[]>([]);
   const [drill, setDrill] = useState<Drill | null>(null);
@@ -84,8 +88,16 @@ export default function App() {
 
   const refresh = useCallback(async () => {
     if (ledger === null) return;
+    if (plan !== null) {
+      // A planned report is re-planned rather than re-fetched, so a capture
+      // made while it is open shows up in it.
+      const again = await client.planReport(ledger.id, plan.question);
+      setPlan(again.plan);
+      setFactSet(again.factSet);
+      return;
+    }
     await load(ledger.id, reportId);
-  }, [ledger, reportId, load]);
+  }, [ledger, reportId, plan, load]);
 
   useEffect(() => {
     let cancelled = false;
@@ -120,6 +132,8 @@ export default function App() {
 
   async function switchReport(next: string) {
     setReportId(next);
+    setPlan(null);
+    setSavedReportId(null);
     if (ledger !== null) await load(ledger.id, next);
   }
 
@@ -154,7 +168,7 @@ export default function App() {
           {REPORT_TABS.map((tab) => (
             <button
               key={tab.id}
-              aria-pressed={reportId === tab.id}
+              aria-pressed={plan === null && reportId === tab.id}
               onClick={() => void switchReport(tab.id)}
             >
               {tab.label}
@@ -164,9 +178,15 @@ export default function App() {
           {ledger !== null && (
             <>
               <button
+                disabled={plan !== null && savedReportId === null}
+                title={
+                  plan !== null && savedReportId === null
+                    ? 'Save the planned report first — a Skill carries a spec, so the spec has to exist.'
+                    : undefined
+                }
                 onClick={() => {
                   void client
-                    .skillBundle(ledger.id, reportId)
+                    .skillBundle(ledger.id, savedReportId ?? reportId)
                     .then((result) => setSkill(result.bundle));
                 }}
               >
@@ -179,6 +199,25 @@ export default function App() {
           )}
         </nav>
       </header>
+
+      {ledger !== null && (
+        <AskBar
+          client={client}
+          ledgerId={ledger.id}
+          plan={plan}
+          onPlanned={(result) => {
+            setPlan(result.plan);
+            setFactSet(result.factSet as FactSet);
+            setSavedReportId(null);
+          }}
+          onCleared={() => {
+            setPlan(null);
+            setSavedReportId(null);
+            void load(ledger.id, reportId);
+          }}
+          onSaved={(id) => setSavedReportId(id)}
+        />
+      )}
 
       {factSet?.blocks.map((block) => {
         const scalars = block.facts.filter(isScalar);

@@ -186,6 +186,57 @@ describe('reports', () => {
   });
 });
 
+describe('planning a report from a question', () => {
+  const plan = (question: string) =>
+    app.inject({
+      method: 'POST',
+      url: `/api/ledgers/${ledgerId}/reports/plan`,
+      payload: { question },
+    });
+
+  it('answers a question with a spec and the figures for it', async () => {
+    const body = json(await plan('what did I spend this month?'));
+    expect(body.plan.source).toBe('template');
+    expect(body.plan.spec.period).toMatchObject({ from: '2026-03-01', to: '2026-03-31' });
+    // The same 47,456 as every other route: one engine, one number.
+    const total = body.factSet.blocks[0].facts.find(
+      (fact: { metric: string }) => fact.metric === 'expense_total',
+    );
+    expect(total.value).toBe(47_456);
+  });
+
+  it('resolves a category the user named into that ledger\'s own id', async () => {
+    const body = json(await plan('how much did I spend on groceries this month'));
+    expect(body.plan.spec.filters.categoryIds).toEqual([`${ledgerId}:groceries`]);
+    expect(body.plan.notes.some((note: { kind: string }) => note.kind === 'filter')).toBe(true);
+  });
+
+  it('plans a subscription audit from a question about Netflix-shaped charges', async () => {
+    const body = json(await plan('what am I paying for in subscriptions over the last 12 months'));
+    expect(body.plan.template).toBe('subscriptions');
+    const recurring = body.factSet.blocks
+      .flatMap((block: { facts: { metric: string; rows?: unknown[] }[] }) => block.facts)
+      .find((fact: { metric: string }) => fact.metric === 'recurring_detected');
+    expect(recurring.rows[0].label).toContain('Netflix');
+  });
+
+  it('refuses an empty question instead of planning something', async () => {
+    const response = await plan('   ');
+    expect(response.statusCode).toBe(400);
+    expect(json(response).error).toBe('question_empty');
+  });
+
+  it('hands back a spec that can be saved and re-run', async () => {
+    const planned = json(await plan('unusual spending this month'));
+    const saved = await app.inject({
+      method: 'POST',
+      url: `/api/ledgers/${ledgerId}/saved-reports`,
+      payload: { name: planned.plan.spec.title, spec: planned.plan.spec },
+    });
+    expect(saved.statusCode).toBe(201);
+  });
+});
+
 describe('capture', () => {
   it('splits one sentence into several drafts', async () => {
     const response = await app.inject({

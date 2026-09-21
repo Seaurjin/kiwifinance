@@ -49,6 +49,34 @@ export interface LedgerOverview {
   pendingCount: number;
 }
 
+/**
+ * What the planner decided that the user did not say. Declared here rather
+ * than imported from @kiwi/planner: this is the wire shape, and the apps
+ * should not pull the planner's dependencies into their bundles to read it.
+ */
+export interface PlanNote {
+  kind: 'assumption' | 'ignored' | 'filter' | 'fallback';
+  message: string;
+}
+
+export interface ReportPlan {
+  spec: ReportSpec;
+  source: 'template' | 'model';
+  template?: string;
+  confidence: number;
+  notes: PlanNote[];
+  question: string;
+}
+
+export interface SavedReport {
+  id: string;
+  ledgerId: string;
+  name: string;
+  spec: ReportSpec;
+  createdBy: string;
+  createdAt: string;
+}
+
 export type MetricCatalogueEntry = Pick<
   MetricDefinition,
   'id' | 'label' | 'unit' | 'returns' | 'description'
@@ -173,6 +201,29 @@ export class KiwiClient {
       method: 'POST',
       body: JSON.stringify(spec),
     });
+  }
+
+  /**
+   * Ask for a report in plain language. Comes back with the spec as well as
+   * the figures, so the user can see what was measured before reading a
+   * number, and can save the spec to run again next month.
+   */
+  planReport(ledgerId: string, question: string): Promise<{ plan: ReportPlan; factSet: FactSet }> {
+    return this.#request(`/api/ledgers/${ledgerId}/reports/plan`, {
+      method: 'POST',
+      body: JSON.stringify({ question }),
+    });
+  }
+
+  saveReport(ledgerId: string, name: string, spec: ReportSpec): Promise<{ report: SavedReport }> {
+    return this.#request(`/api/ledgers/${ledgerId}/saved-reports`, {
+      method: 'POST',
+      body: JSON.stringify({ name, spec }),
+    });
+  }
+
+  savedReports(ledgerId: string): Promise<{ reports: SavedReport[] }> {
+    return this.#request(`/api/ledgers/${ledgerId}/saved-reports`);
   }
 
   extract(ledgerId: string, text: string): Promise<{ drafts: Draft[]; extractedBy: string }> {

@@ -26,6 +26,7 @@
       "@kiwi/metrics": ["packages/metrics/src/index.ts"],
       "@kiwi/model-router": ["packages/model-router/src/index.ts"],
       "@kiwi/report-spec": ["packages/report-spec/src/index.ts"],
+      "@kiwi/planner": ["packages/planner/src/index.ts"],
       "@kiwi/store": ["packages/store/src/index.ts"],
       "@kiwi/client": ["packages/client/src/index.ts"]
     }

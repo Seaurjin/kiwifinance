@@ -12,6 +12,7 @@
     "@kiwi/ledger": "workspace:*",
     "@kiwi/metrics": "workspace:*",
     "@kiwi/model-router": "workspace:*",
+    "@kiwi/planner": "workspace:*",
     "@kiwi/report-spec": "workspace:*",
     "@kiwi/store": "workspace:*",
     "@fastify/cors": "^10.0.1",

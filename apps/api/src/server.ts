@@ -18,6 +18,7 @@ import {
   createStubExtractor,
   type Region,
 } from '@kiwi/model-router';
+import { QuestionEmptyError, TemplatePlanner, type Planner } from '@kiwi/planner';
 import {
   SpecValidationError,
   STANDARD_REPORTS,
@@ -35,6 +36,12 @@ export interface ServerOptions {
   /** Injected so tests and the demo are reproducible. */
   readonly today: () => IsoDate;
   readonly region?: Region;
+  /**
+   * Turns a question into a Report Spec. Defaults to the deterministic
+   * template planner, which needs no credential; a `RouterPlanner` drops in
+   * here once a provider key exists, and nothing else in the API changes.
+   */
+  readonly planner?: Planner;
 }
 
 interface LedgerParams {
@@ -52,6 +59,8 @@ export function buildServer(options: ServerOptions): FastifyInstance {
 
   app.register(cors, { origin: true });
 
+  const planner: Planner = options.planner ?? new TemplatePlanner();
+
   // Domain errors carry the status they deserve; everything else is a 500.
   app.setErrorHandler((error, _request, reply) => {
     if (error instanceof SpecValidationError) {
@@ -59,6 +68,9 @@ export function buildServer(options: ServerOptions): FastifyInstance {
     }
     if (error instanceof DuplicateCaptureError) {
       return reply.status(409).send({ error: 'duplicate_capture', existingId: error.existingId });
+    }
+    if (error instanceof QuestionEmptyError) {
+      return reply.status(400).send({ error: 'question_empty', message: error.message });
     }
     if (error instanceof LedgerInvariantError) {
       return reply.status(422).send({ error: error.code, message: error.message });
@@ -285,6 +297,33 @@ export function buildServer(options: ServerOptions): FastifyInstance {
       return {
         bundle: exportReportAsSkill(name, spec, { ledgerName: ledger.name }),
       };
+    },
+  );
+
+  /**
+   * A question in plain language, planned and run in one round trip
+   * (FR-ANA-07).
+   *
+   * The answer carries the spec as well as the figures, deliberately: the
+   * user can see which figures were chosen and why before reading a single
+   * number, and can save the spec to re-run next month. Nothing here computes
+   * anything — the planner picks metrics, the engine runs them.
+   */
+  app.post<{ Params: LedgerParams; Body: { question?: string } }>(
+    '/api/ledgers/:ledgerId/reports/plan',
+    async (request) => {
+      const ledger = requireLedger(request.params.ledgerId);
+      const snapshot = store.loadSnapshot(ledger.id);
+
+      const plan = await planner.plan(request.body?.question ?? '', {
+        today: options.today(),
+        baseCurrency: ledger.baseCurrency,
+        categories: snapshot.categories.map(({ id, name }) => ({ id, name })),
+        currencies: [...new Set(snapshot.accounts.map((account) => account.currency))],
+      });
+
+      const factSet = executeSpec(plan.spec, { snapshot, today: options.today() });
+      return { plan, factSet };
     },
   );
 
